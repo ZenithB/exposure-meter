@@ -1,18 +1,32 @@
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!gradle/wrapper/gradle-wrapper.properties
+gradle-app.setting
 
-# Virtual environments
-venv/
-env/
-.venv/
-.env
+# Android / IntelliJ / Android Studio
+*.iml
+.idea/
+local.properties
+captures/
+.cxx/
+*.apk
+*.aab
+*.ap_
+*.dex
+*.class
+
+# Keystores and signing (never commit)
+*.jks
+*.keystore
+keystore.properties
+
+# Kotlin
+.kotlin/
 
 # macOS
 .DS_Store
 
-# Streamlit
-.streamlit/secrets.toml
+# Logs
+*.log

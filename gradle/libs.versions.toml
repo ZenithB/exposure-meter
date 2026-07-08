@@ -1,0 +1,17 @@
+# Version catalog. All plugin/library versions are pinned here for
+# reproducible, F-Droid-friendly builds (no dynamic versions, no snapshots).
+[versions]
+kotlin = "2.0.21"
+# Android Gradle Plugin — declared for Phase 2 (:app). Not applied by :engine.
+agp = "8.7.3"
+junit = "5.11.3"
+
+[libraries]
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
+junit-jupiter-params = { module = "org.junit.jupiter:junit-jupiter-params", version.ref = "junit" }
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+# Declared for Phase 2; applied by the future :app module only.
+android-application = { id = "com.android.application", version.ref = "agp" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }

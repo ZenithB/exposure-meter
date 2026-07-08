@@ -8,8 +8,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
@@ -32,48 +30,34 @@ import kotlin.math.pow
 import kotlin.math.roundToInt
 
 /**
- * Manual EV entry panel (brief §6): the Phase-2 stand-in for a live meter. The EV
- * can be typed or nudged in thirds / whole stops.
+ * Manual EV entry (brief §6): a large EV readout with type-or-nudge controls
+ * (⅓ / 1 EV). Used as the meter body in [MeterCard] when in manual mode.
  */
 @Composable
-fun MeterPanel(
+fun ManualEvControls(
     ev100: Double,
     onEvChanged: (Double) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Card(
+    Column(
         modifier = modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-        ),
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
+        Text(
+            text = "EV ${formatEv(ev100)}",
+            style = MaterialTheme.typography.displaySmall,
+            fontWeight = FontWeight.Bold,
+        )
+        Row(
+            modifier = Modifier.padding(top = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(
-                text = "Manual EV",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Text(
-                text = "EV ${formatEv(ev100)}",
-                style = MaterialTheme.typography.displaySmall,
-                fontWeight = FontWeight.Bold,
-            )
-            Row(
-                modifier = Modifier.padding(top = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                NudgeButton("−1") { onEvChanged(ev100 - 1.0) }
-                NudgeButton("−⅓") { onEvChanged(ev100 - 1.0 / 3.0) }
-                EvEntryField(ev100, onEvChanged)
-                NudgeButton("+⅓") { onEvChanged(ev100 + 1.0 / 3.0) }
-                NudgeButton("+1") { onEvChanged(ev100 + 1.0) }
-            }
+            NudgeButton("−1") { onEvChanged(ev100 - 1.0) }
+            NudgeButton("−⅓") { onEvChanged(ev100 - 1.0 / 3.0) }
+            EvEntryField(ev100, onEvChanged)
+            NudgeButton("+⅓") { onEvChanged(ev100 + 1.0 / 3.0) }
+            NudgeButton("+1") { onEvChanged(ev100 + 1.0) }
         }
     }
 }
@@ -122,10 +106,7 @@ private fun StepperRow(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyLarge,
-        )
+        Text(text = label, style = MaterialTheme.typography.bodyLarge)
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -152,7 +133,6 @@ private fun NudgeButton(label: String, onClick: () -> Unit) {
 
 @Composable
 private fun EvEntryField(ev100: Double, onEvChanged: (Double) -> Unit) {
-    // Local editable text so the user can type freely; commit on done/blur.
     var text by remember(ev100) { mutableStateOf(formatEv(ev100)) }
     OutlinedTextField(
         value = text,
@@ -171,7 +151,7 @@ private fun EvEntryField(ev100: Double, onEvChanged: (Double) -> Unit) {
 }
 
 /** Format EV compactly: whole numbers show no decimal, else one place. */
-private fun formatEv(ev: Double): String {
+internal fun formatEv(ev: Double): String {
     val rounded = (ev * 10.0).roundToInt() / 10.0
     return if (rounded == rounded.toLong().toDouble()) rounded.toLong().toString()
     else rounded.toString()

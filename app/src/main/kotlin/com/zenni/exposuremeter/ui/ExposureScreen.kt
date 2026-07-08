@@ -12,24 +12,28 @@ import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.zenni.exposuremeter.engine.Param
 import com.zenni.exposuremeter.engine.StopTables
 import com.zenni.exposuremeter.ui.components.DeltaBadge
 import com.zenni.exposuremeter.ui.components.EvCompControl
-import com.zenni.exposuremeter.ui.components.MeterPanel
+import com.zenni.exposuremeter.ui.components.MeterCard
 import com.zenni.exposuremeter.ui.components.NdControl
 import com.zenni.exposuremeter.ui.components.StopWheel
 
 /**
- * The Phase-2 screen: manual-EV meter panel, delta badge, the three locking
- * wheels, and the EVcomp / ND controls. Portrait-first (brief §7). The UI is a
- * pure function of [ExposureViewModel.ui].
+ * The main screen: a mode-aware meter panel, the delta badge, the three locking
+ * wheels, and the EVcomp / ND controls, with a settings overlay. Portrait-first
+ * (brief §7). Pure function of [ExposureViewModel.ui].
  */
 @Composable
 fun ExposureScreen(
@@ -37,6 +41,17 @@ fun ExposureScreen(
     viewModel: ExposureViewModel = viewModel(),
 ) {
     val ui = viewModel.ui
+
+    if (ui.showSettings) {
+        SettingsScreen(
+            settings = ui.settings,
+            onIncidentCalibrationChanged = viewModel::onIncidentCalibrationChanged,
+            onHapticsChanged = viewModel::onHapticsChanged,
+            onDone = { viewModel.onShowSettings(false) },
+            modifier = modifier,
+        )
+        return
+    }
 
     Column(
         modifier = modifier
@@ -47,11 +62,30 @@ fun ExposureScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Text(
+                "Exposure Meter",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+            )
+            TextButton(onClick = { viewModel.onShowSettings(true) }) { Text("Settings") }
+        }
+
         DeltaBadge(ui.delta)
 
-        MeterPanel(
+        MeterCard(
+            mode = ui.mode,
+            hasLightSensor = ui.hasLightSensor,
             ev100 = ui.inputs.ev100,
-            onEvChanged = viewModel::onManualEvChanged,
+            liveLux = ui.liveLux,
+            held = ui.held,
+            onModeChanged = viewModel::onModeChanged,
+            onToggleHold = viewModel::onToggleHold,
+            onManualEvChanged = viewModel::onManualEvChanged,
         )
 
         Row(
@@ -89,6 +123,7 @@ private fun WheelColumn(
         locked = ui.state.isLocked(param),
         onSelected = { pos -> viewModel.onWheelChanged(param, scale.minIndex + pos) },
         onToggleLock = { viewModel.onToggleLock(param) },
+        haptics = ui.settings.haptics,
         modifier = modifier,
     )
 }

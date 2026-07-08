@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      Minimal activity theme. Colours are supplied by Compose (Material 3,
+      dynamic colour where available); this base theme only removes the action
+      bar and provides a sane window background. Kept free of the Material
+      Components (Views) library so no extra dependency is pulled in.
+    -->
+    <style name="Theme.ExposureMeter" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@android:color/white</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+</resources>

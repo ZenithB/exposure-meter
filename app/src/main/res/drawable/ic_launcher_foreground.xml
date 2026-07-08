@@ -1,0 +1,39 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Aperture-blade motif, centred within the 72dp adaptive safe zone. -->
+    <group android:name="aperture">
+        <path
+            android:fillColor="#F2B705"
+            android:pathData="M54,30
+                A24,24 0 0,1 78,54
+                L54,54 Z" />
+        <path
+            android:fillColor="#F29F05"
+            android:pathData="M78,54
+                A24,24 0 0,1 66,74.78
+                L54,54 Z" />
+        <path
+            android:fillColor="#F2B705"
+            android:pathData="M66,74.78
+                A24,24 0 0,1 42,74.78
+                L54,54 Z" />
+        <path
+            android:fillColor="#F29F05"
+            android:pathData="M42,74.78
+                A24,24 0 0,1 30,54
+                L54,54 Z" />
+        <path
+            android:fillColor="#F2B705"
+            android:pathData="M30,54
+                A24,24 0 0,1 42,33.22
+                L54,54 Z" />
+        <path
+            android:fillColor="#F29F05"
+            android:pathData="M42,33.22
+                A24,24 0 0,1 54,30
+                L54,54 Z" />
+    </group>
+</vector>

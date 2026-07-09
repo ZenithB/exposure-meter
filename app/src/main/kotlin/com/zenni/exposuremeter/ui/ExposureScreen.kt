@@ -83,9 +83,14 @@ fun ExposureScreen(
             ev100 = ui.inputs.ev100,
             liveLux = ui.liveLux,
             held = ui.held,
+            spot = ui.spot,
+            reflectedError = ui.reflectedError,
             onModeChanged = viewModel::onModeChanged,
             onToggleHold = viewModel::onToggleHold,
             onManualEvChanged = viewModel::onManualEvChanged,
+            onSpotChanged = viewModel::onSpotChanged,
+            onReflectedReading = viewModel::onReflectedReading,
+            onReflectedError = viewModel::onReflectedError,
         )
 
         Row(

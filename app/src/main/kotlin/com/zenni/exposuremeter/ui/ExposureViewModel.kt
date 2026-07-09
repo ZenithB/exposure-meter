@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.geometry.Offset
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.zenni.exposuremeter.data.Settings
@@ -31,14 +32,17 @@ data class ExposureUiState(
     val held: Boolean,
     val hasLightSensor: Boolean,
     val liveLux: Double?,
+    val spot: Offset,
+    val reflectedError: String?,
     val settings: Settings,
     val showSettings: Boolean,
 )
 
 /**
  * Owns exposure state and merges every light source and UI event onto the pure
- * [ExposureSolver]. In incident mode it collects [IncidentLightMeter]; the "hold"
- * toggle freezes the metered EV while the wheels keep working (brief §5).
+ * [ExposureSolver]. Incident readings come from [IncidentLightMeter]; reflected
+ * readings are pushed in from the camera surface via [onReflectedReading]. The
+ * "hold" toggle freezes the metered EV while the wheels keep working (brief §5).
  * Calibration and haptics come from [SettingsRepository] (DataStore).
  */
 class ExposureViewModel(app: Application) : AndroidViewModel(app) {
@@ -46,11 +50,12 @@ class ExposureViewModel(app: Application) : AndroidViewModel(app) {
     private val incidentMeter = IncidentLightMeter(app)
     private val settingsRepository = SettingsRepository(app)
 
-    // Dial + source values that resolve into MeterInputs.
+    // Source + dial values that resolve into MeterInputs.
     private var manualEv: Double = 12.0
     private var evComp: Double = 0.0
     private var ndStops: Double = 0.0
-    private var liveReading: Ev100Reading? = null
+    private var incidentReading: Ev100Reading? = null
+    private var reflectedReading: Ev100Reading? = null
     private var frozenEv: Double? = null
     private var settings: Settings = Settings()
 
@@ -61,7 +66,6 @@ class ExposureViewModel(app: Application) : AndroidViewModel(app) {
         private set
 
     init {
-        // Persisted settings drive calibration + haptics live.
         settingsRepository.settings
             .onEach {
                 settings = it
@@ -96,8 +100,7 @@ class ExposureViewModel(app: Application) : AndroidViewModel(app) {
     fun onModeChanged(mode: MeteringMode) {
         if (mode == ui.mode) return
         frozenEv = null
-        val held = false
-        ui = ui.copy(mode = mode, held = held)
+        ui = ui.copy(mode = mode, held = false, reflectedError = null)
         if (mode == MeteringMode.INCIDENT) startIncident() else stopIncident()
         ui = resolve()
     }
@@ -105,7 +108,7 @@ class ExposureViewModel(app: Application) : AndroidViewModel(app) {
     /** Hold/freeze toggle (brief §5): freeze EV₁₀₀; wheels keep working. */
     fun onToggleHold() {
         val nowHeld = !ui.held
-        frozenEv = if (nowHeld) (liveReading?.ev100 ?: ui.inputs.ev100) else null
+        frozenEv = if (nowHeld) currentSourceEv() else null
         ui = ui.copy(held = nowHeld)
         ui = resolve()
     }
@@ -123,6 +126,24 @@ class ExposureViewModel(app: Application) : AndroidViewModel(app) {
     fun onNdChanged(value: Double) {
         ndStops = value.coerceIn(0.0, 10.0)
         ui = resolve()
+    }
+
+    // ---- Reflected (camera) intents -----------------------------------------
+
+    /** A metered frame from the camera surface (brief §3.2). */
+    fun onReflectedReading(reading: Ev100Reading) {
+        reflectedReading = reading
+        if (ui.mode == MeteringMode.REFLECTED && !ui.held) ui = resolve()
+    }
+
+    /** The camera cannot supply aperture; disable reflected metering (brief §3.2). */
+    fun onReflectedError(message: String) {
+        ui = ui.copy(reflectedError = message)
+    }
+
+    /** The user tapped a new spot on the preview (brief §3.2). */
+    fun onSpotChanged(spot: Offset) {
+        ui = ui.copy(spot = spot)
     }
 
     // ---- Settings intents ----------------------------------------------------
@@ -145,8 +166,8 @@ class ExposureViewModel(app: Application) : AndroidViewModel(app) {
         if (incidentJob?.isActive == true) return
         incidentJob = incidentMeter.readings()
             .onEach { reading ->
-                liveReading = reading
-                if (!ui.held) ui = resolve()
+                incidentReading = reading
+                if (ui.mode == MeteringMode.INCIDENT && !ui.held) ui = resolve()
             }
             .launchIn(viewModelScope)
     }
@@ -156,17 +177,27 @@ class ExposureViewModel(app: Application) : AndroidViewModel(app) {
         incidentJob = null
     }
 
+    /** The latest live EV for the current mode (before hold/calibration). */
+    private fun currentSourceEv(): Double = when (currentMode()) {
+        MeteringMode.MANUAL -> manualEv
+        MeteringMode.INCIDENT -> incidentReading?.ev100 ?: manualEv
+        MeteringMode.REFLECTED -> reflectedReading?.ev100 ?: manualEv
+    }
+
     /**
      * Rebuild [ui] from the current source/dial values: pick the effective EV for
      * the mode, apply per-mode calibration, then solve the free wheel.
      */
     private fun resolve(initial: Boolean = false): ExposureUiState {
+        val mode = currentMode(initial)
         val ev = when {
-            ui0Mode(initial) == MeteringMode.MANUAL -> manualEv
-            ui.held -> frozenEv ?: manualEv
-            else -> liveReading?.ev100 ?: manualEv
+            mode == MeteringMode.MANUAL -> manualEv
+            !initial && ui.held -> frozenEv ?: manualEv
+            mode == MeteringMode.INCIDENT -> incidentReading?.ev100 ?: manualEv
+            mode == MeteringMode.REFLECTED -> reflectedReading?.ev100 ?: manualEv
+            else -> manualEv
         }
-        val calibration = when (ui0Mode(initial)) {
+        val calibration = when (mode) {
             MeteringMode.INCIDENT -> settings.incidentCalibration
             MeteringMode.REFLECTED -> settings.reflectedCalibration
             MeteringMode.MANUAL -> 0.0
@@ -183,17 +214,18 @@ class ExposureViewModel(app: Application) : AndroidViewModel(app) {
             state = result.state,
             inputs = inputs,
             delta = result.delta,
-            mode = ui0Mode(initial),
+            mode = mode,
             held = if (initial) false else ui.held,
             hasLightSensor = incidentMeter.isAvailable,
-            liveLux = liveReading?.lux,
+            liveLux = incidentReading?.lux,
+            spot = if (initial) Offset(0.5f, 0.5f) else ui.spot,
+            reflectedError = if (initial) null else ui.reflectedError,
             settings = settings,
             showSettings = if (initial) false else ui.showSettings,
         )
     }
 
-    // During the very first resolve() the `ui` field is not yet initialised.
-    private fun ui0Mode(initial: Boolean): MeteringMode =
+    private fun currentMode(initial: Boolean = false): MeteringMode =
         if (initial) {
             if (incidentMeter.isAvailable) MeteringMode.INCIDENT else MeteringMode.MANUAL
         } else {

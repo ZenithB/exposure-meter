@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 package com.zenni.exposuremeter.ui
 
 import android.app.Application

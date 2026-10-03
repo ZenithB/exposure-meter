@@ -13,14 +13,22 @@ switch to reflected metering.
 
 ## Status
 
-Early development. Built in phases (see the project brief):
+Feature-complete; pending on-device verification and the first tagged release.
+Built in phases (see the project brief):
 
 - [x] **Phase 1 — Engine.** Pure-Kotlin exposure maths: third-stop tables, EV
-      conversions, and the lock-model solver, with a full unit-test suite.
-- [ ] Phase 2 — UI shell + manual EV mode (wheels, locks, delta badge, EVcomp, ND).
-- [ ] Phase 3 — Incident metering (ambient light sensor).
-- [ ] Phase 4 — Reflected spot metering (CameraX).
-- [ ] Phase 5 — F-Droid packaging (Fastlane metadata, tagged release).
+      conversions, median filter, and the lock-model solver, with a full
+      unit-test suite.
+- [x] **Phase 2 — UI shell + manual EV mode** (wheels, locks, delta badge,
+      EVcomp, ND).
+- [x] **Phase 3 — Incident metering** (ambient light sensor, median filter,
+      hold, calibration).
+- [x] **Phase 4 — Reflected spot metering** (CameraX, tap-to-spot, linearised
+      region luma).
+- [~] **Phase 5 — F-Droid packaging.** Fastlane metadata, SPDX headers and the
+      submission checklist are in place; screenshots and the tagged release are
+      held pending on-device verification and the final application id. See
+      [`docs/fdroid-submission.md`](docs/fdroid-submission.md).
 
 ## Modules
 

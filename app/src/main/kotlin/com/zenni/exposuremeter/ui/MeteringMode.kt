@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 package com.zenni.exposuremeter.ui
 
 /** How scene light is being determined (brief §5, §6). */

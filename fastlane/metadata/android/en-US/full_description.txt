@@ -1,0 +1,26 @@
+Exposure Meter is a photographic light meter and exposure calculator. Measure the light on your scene and read it off as the exposure triangle - aperture, shutter speed and ISO - on three camera-style scrolling wheels.
+
+Two metering modes:
+
+* Incident, using the phone's ambient light sensor.
+* Reflected spot metering, using the camera: tap a point to meter it.
+
+There is also a manual EV mode for sunny-16 work or as a fallback.
+
+Lock any of the three parameters and adjusting an unlocked one moves the remaining free parameter, so the exposure stays correct for the metered light. An over/under-exposure badge shows, in thirds of a stop, how far any combination deviates from correct exposure.
+
+Features:
+
+* Exposure compensation, plus or minus 5 EV in thirds.
+* ND filter compensation, stackable with exposure compensation.
+* Separate calibration offsets for incident and reflected metering.
+* Hold to freeze a reading while you set your camera.
+* Follows your system light/dark theme, with Material You dynamic colour on Android 12 and above.
+
+Privacy and freedom:
+
+* No internet permission - the app never touches the network.
+* No Google Play Services, no analytics, no tracking, no advertising.
+* The only permission is camera, requested only when you first use reflected metering.
+
+Free software under the GNU General Public License v3.0 or later.

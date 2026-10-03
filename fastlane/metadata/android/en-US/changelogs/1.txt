@@ -1,0 +1,1 @@
+First release. Incident (ambient light sensor) and reflected (camera spot) metering, plus manual EV. The exposure triangle on three locking wheels with an over/under-exposure delta in thirds. Exposure compensation, ND filters and per-mode calibration. Fully offline, no trackers.

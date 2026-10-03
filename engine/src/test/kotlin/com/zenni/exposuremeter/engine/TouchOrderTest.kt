@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 package com.zenni.exposuremeter.engine
 
 import org.junit.jupiter.api.Assertions.assertEquals

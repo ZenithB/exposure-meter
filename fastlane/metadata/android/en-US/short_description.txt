@@ -1,0 +1,1 @@
+Offline photographic light meter and exposure calculator. No trackers.
